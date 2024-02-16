@@ -12,7 +12,9 @@ export default function App() {
   const targetPositionX = useSharedValue(200);
   const targetPositionY = useSharedValue(250);
   useEffect(()=>{
-    setInterval(update, DELTA)
+    const interval = setInterval(update, DELTA)
+
+    return ()=> clearInterval(interval);
     //console.warn("Component mounted")
   }, []);
 
