@@ -1,10 +1,46 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import {StyleSheet, Text, View } from 'react-native';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
+
+const FPS = 60;
+const DELTA = 1000/ FPS;
+const SPEED = 0.1;
 
 export default function App() {
+  const targetPositionX = useSharedValue(200);
+  const targetPositionY = useSharedValue(250);
+  useEffect(()=>{
+    setInterval(update, DELTA)
+    //console.warn("Component mounted")
+  }, []);
+
+  const update =()=> {
+    // console.log("Updating physics")
+
+    targetPositionX.value = withTiming(targetPositionX.value + 10 * SPEED, {
+      duration: DELTA,
+      // easing: Easing.linear,
+      easing: Easing.linear,
+    
+    });
+    targetPositionY.value = withTiming(targetPositionY.value + 10 * SPEED, {
+      duration: DELTA,
+       easing: Easing.linear,
+    });
+
+  };
+  const ballAnimtedStyles = useAnimatedStyle(()=> {
+    return{
+      top: targetPositionY.value,
+      left: targetPositionX.value,
+    }
+  });
+  
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
+      <Animated.View style={[styles.ball, ballAnimtedStyles]}></Animated.View>
       <StatusBar style="auto" />
     </View>
   );
@@ -17,4 +53,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  ball: {
+    backgroundColor: "black",
+    width: 25, 
+    aspectRatio: 1,
+    borderRadius: 25,
+    position: "absolute",
+    // left:50,
+
+  }
 });
