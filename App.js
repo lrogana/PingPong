@@ -1,12 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import {StyleSheet, Text, View } from 'react-native';
+import {StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 
 const FPS = 60;
 const DELTA = 10/ FPS;
-const SPEED = 1;
+const SPEED =10;
+const BALL_WIDTH = 25;
 const normalizeVector = (vector)=> {
   const magnitude = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
 
@@ -16,10 +17,12 @@ const normalizeVector = (vector)=> {
   });
 };
 export default function App() {
-  const targetPositionX = useSharedValue(0);
-  const targetPositionY = useSharedValue(0);
-  const direction = useSharedValue(normalizeVector({x: 1, y: 1}));
+  const targetPositionX = useSharedValue(200);
+  const targetPositionY = useSharedValue(200);
+  const direction = useSharedValue(normalizeVector({x: Math.random(), y: Math.random()}));
   // console.log(direction);
+
+  const {height, width} = useWindowDimensions ();
 
   useEffect(()=>{
     const interval = setInterval(update, DELTA)
@@ -30,25 +33,49 @@ export default function App() {
 
   const update =()=> {
     // console.log("Updating physics")
+    let nextPos = getNextPos(direction.value);
+    
 
+    if (nextPos.y < 0 || nextPos.y > height - BALL_WIDTH){
+      
+      const newDirection = {x: direction.value.x, y: -direction.value.y};
+      direction.value = newDirection; 
+      
+      nextPos = getNextPos(newDirection);
+    }
+    if (nextPos.x < 0 || nextPos.x > width - BALL_WIDTH) {
+      const newDirection = {x: -direction.value.x, y: direction.value.y};
+      direction.value = newDirection;
+      nextPos = getNextPos(newDirection);
+    }
     targetPositionX.value = withTiming(
-      targetPositionX.value + direction.value.x * SPEED, {
+      nextPos.x, 
+      {
       duration: DELTA,
       // easing: Easing.linear,
       easing: Easing.linear,
     
     });
     targetPositionY.value = withTiming(
-      targetPositionY.value + direction.value.y * SPEED, {
+      nextPos.y, {
       duration: DELTA,
        easing: Easing.linear,
     });
 
   };
+
+  const getNextPos = (direction)=> {
+
+    return {
+      x: targetPositionX.value + direction.x * SPEED,
+      y: targetPositionY.value + direction.y * SPEED,
+    }
+  }
   const ballAnimtedStyles = useAnimatedStyle(()=> {
     return{
       top: targetPositionY.value,
       left: targetPositionX.value,
+      
     }
   });
   
@@ -69,7 +96,7 @@ const styles = StyleSheet.create({
   },
   ball: {
     backgroundColor: "black",
-    width: 25, 
+    width: BALL_WIDTH, 
     aspectRatio: 1,
     borderRadius: 25,
     position: "absolute",
