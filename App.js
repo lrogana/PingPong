@@ -5,12 +5,22 @@ import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 're
 
 
 const FPS = 60;
-const DELTA = 1000/ FPS;
-const SPEED = 0.1;
+const DELTA = 10/ FPS;
+const SPEED = 1;
+const normalizeVector = (vector)=> {
+  const magnitude = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
 
+  return ({
+    x: vector.x / magnitude,
+    y: vector.y /magnitude,
+  });
+};
 export default function App() {
-  const targetPositionX = useSharedValue(200);
-  const targetPositionY = useSharedValue(250);
+  const targetPositionX = useSharedValue(0);
+  const targetPositionY = useSharedValue(0);
+  const direction = useSharedValue(normalizeVector({x: 1, y: 1}));
+  // console.log(direction);
+
   useEffect(()=>{
     const interval = setInterval(update, DELTA)
 
@@ -21,13 +31,15 @@ export default function App() {
   const update =()=> {
     // console.log("Updating physics")
 
-    targetPositionX.value = withTiming(targetPositionX.value + 10 * SPEED, {
+    targetPositionX.value = withTiming(
+      targetPositionX.value + direction.value.x * SPEED, {
       duration: DELTA,
       // easing: Easing.linear,
       easing: Easing.linear,
     
     });
-    targetPositionY.value = withTiming(targetPositionY.value + 10 * SPEED, {
+    targetPositionY.value = withTiming(
+      targetPositionY.value + direction.value.y * SPEED, {
       duration: DELTA,
        easing: Easing.linear,
     });
